@@ -11,9 +11,9 @@ import (
 var ErrNotFound = errors.New("user not found")
 
 type Repository interface {
-	Create(ctx context.Context, input CreateUserInput) (User, error)
-	GetByID(ctx context.Context, id int64) (User, error)
-	List(ctx context.Context, limit, offset int32) ([]User, error)
+	Create(ctx context.Context, command CreateUserCommand) (UserEntity, error)
+	GetByID(ctx context.Context, id int64) (UserEntity, error)
+	List(ctx context.Context, limit, offset int32) ([]UserEntity, error)
 }
 
 type PostgresRepository struct {
@@ -24,29 +24,29 @@ func NewPostgresRepository(queries *store.Queries) *PostgresRepository {
 	return &PostgresRepository{queries: queries}
 }
 
-func (r *PostgresRepository) Create(ctx context.Context, input CreateUserInput) (User, error) {
+func (r *PostgresRepository) Create(ctx context.Context, command CreateUserCommand) (UserEntity, error) {
 	row, err := r.queries.CreateUser(ctx, store.CreateUserParams{
-		Email: input.Email,
-		Name:  input.Name,
+		Email: command.Email,
+		Name:  command.Name,
 	})
 	if err != nil {
-		return User{}, err
+		return UserEntity{}, err
 	}
-	return toUser(row), nil
+	return toUserEntity(row), nil
 }
 
-func (r *PostgresRepository) GetByID(ctx context.Context, id int64) (User, error) {
+func (r *PostgresRepository) GetByID(ctx context.Context, id int64) (UserEntity, error) {
 	row, err := r.queries.GetUser(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return User{}, ErrNotFound
+		return UserEntity{}, ErrNotFound
 	}
 	if err != nil {
-		return User{}, err
+		return UserEntity{}, err
 	}
-	return toUser(row), nil
+	return toUserEntity(row), nil
 }
 
-func (r *PostgresRepository) List(ctx context.Context, limit, offset int32) ([]User, error) {
+func (r *PostgresRepository) List(ctx context.Context, limit, offset int32) ([]UserEntity, error) {
 	rows, err := r.queries.ListUsers(ctx, store.ListUsersParams{
 		Limit:  limit,
 		Offset: offset,
@@ -55,18 +55,9 @@ func (r *PostgresRepository) List(ctx context.Context, limit, offset int32) ([]U
 		return nil, err
 	}
 
-	users := make([]User, 0, len(rows))
+	users := make([]UserEntity, 0, len(rows))
 	for _, row := range rows {
-		users = append(users, toUser(row))
+		users = append(users, toUserEntity(row))
 	}
 	return users, nil
-}
-
-func toUser(row store.User) User {
-	return User{
-		ID:        row.ID,
-		Email:     row.Email,
-		Name:      row.Name,
-		CreatedAt: row.CreatedAt.Time,
-	}
 }

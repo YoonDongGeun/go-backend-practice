@@ -9,25 +9,25 @@ import (
 
 func TestServiceCreate(t *testing.T) {
 	repo := &fakeRepository{
-		createFunc: func(ctx context.Context, input CreateUserInput) (User, error) {
-			if input.Email != "yoon@example.com" {
-				t.Fatalf("expected email yoon@example.com, got %s", input.Email)
+		createFunc: func(ctx context.Context, command CreateUserCommand) (UserEntity, error) {
+			if command.Email != "yoon@example.com" {
+				t.Fatalf("expected email yoon@example.com, got %s", command.Email)
 			}
-			if input.Name != "Yoon" {
-				t.Fatalf("expected name Yoon, got %s", input.Name)
+			if command.Name != "Yoon" {
+				t.Fatalf("expected name Yoon, got %s", command.Name)
 			}
 
-			return User{
+			return UserEntity{
 				ID:        1,
-				Email:     input.Email,
-				Name:      input.Name,
+				Email:     command.Email,
+				Name:      command.Name,
 				CreatedAt: time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC),
 			}, nil
 		},
 	}
 
 	service := NewService(repo)
-	got, err := service.Create(context.Background(), CreateUserInput{
+	got, err := service.Create(context.Background(), CreateUserCommand{
 		Email: "yoon@example.com",
 		Name:  "Yoon",
 	})
@@ -41,8 +41,8 @@ func TestServiceCreate(t *testing.T) {
 
 func TestServiceGetReturnsRepositoryError(t *testing.T) {
 	repo := &fakeRepository{
-		getByIDFunc: func(ctx context.Context, id int64) (User, error) {
-			return User{}, ErrNotFound
+		getByIDFunc: func(ctx context.Context, id int64) (UserEntity, error) {
+			return UserEntity{}, ErrNotFound
 		},
 	}
 
@@ -54,28 +54,28 @@ func TestServiceGetReturnsRepositoryError(t *testing.T) {
 }
 
 type fakeRepository struct {
-	createFunc  func(context.Context, CreateUserInput) (User, error)
-	getByIDFunc func(context.Context, int64) (User, error)
-	listFunc    func(context.Context, int32, int32) ([]User, error)
+	createFunc  func(context.Context, CreateUserCommand) (UserEntity, error)
+	getByIDFunc func(context.Context, int64) (UserEntity, error)
+	listFunc    func(context.Context, int32, int32) ([]UserEntity, error)
 }
 
-func (r *fakeRepository) Create(ctx context.Context, input CreateUserInput) (User, error) {
+func (r *fakeRepository) Create(ctx context.Context, command CreateUserCommand) (UserEntity, error) {
 	if r.createFunc != nil {
-		return r.createFunc(ctx, input)
+		return r.createFunc(ctx, command)
 	}
-	return User{}, nil
+	return UserEntity{}, nil
 }
 
-func (r *fakeRepository) GetByID(ctx context.Context, id int64) (User, error) {
+func (r *fakeRepository) GetByID(ctx context.Context, id int64) (UserEntity, error) {
 	if r.getByIDFunc != nil {
 		return r.getByIDFunc(ctx, id)
 	}
-	return User{}, nil
+	return UserEntity{}, nil
 }
 
-func (r *fakeRepository) List(ctx context.Context, limit, offset int32) ([]User, error) {
+func (r *fakeRepository) List(ctx context.Context, limit, offset int32) ([]UserEntity, error) {
 	if r.listFunc != nil {
 		return r.listFunc(ctx, limit, offset)
 	}
-	return []User{}, nil
+	return []UserEntity{}, nil
 }

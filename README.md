@@ -26,10 +26,12 @@ cmd/api/main.go
 
 For new features, copy the `internal/user` shape:
 
-- `model.go` defines request/domain data used by the feature.
+- `dto.go` defines request/response DTOs and service command inputs.
+- `entity.go` defines the feature's domain entity.
 - `handler.go` owns HTTP parsing, status codes, and JSON responses.
 - `service.go` owns business rules and depends on a repository interface.
 - `repository.go` adapts the database implementation to the service.
+- `mapper.go` converts database rows/entities/DTOs.
 - `sql/queries/*.sql` contains SQL that `sqlc` compiles into `internal/store`.
 
 ## Run locally

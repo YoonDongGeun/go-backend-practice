@@ -14,11 +14,6 @@ type Handler struct {
 	service *Service
 }
 
-type createUserRequest struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
-
 func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
@@ -32,7 +27,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var req createUserRequest
+	var req CreateUserRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httpx.Error(w, http.StatusBadRequest, "invalid JSON body")
 		return
@@ -42,7 +37,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Create(r.Context(), CreateUserInput{
+	user, err := h.service.Create(r.Context(), CreateUserCommand{
 		Email: req.Email,
 		Name:  req.Name,
 	})
@@ -51,7 +46,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.JSON(w, http.StatusCreated, user)
+	httpx.JSON(w, http.StatusCreated, toUserResponseDTO(user))
 }
 
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +66,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.JSON(w, http.StatusOK, user)
+	httpx.JSON(w, http.StatusOK, toUserResponseDTO(user))
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +79,11 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.JSON(w, http.StatusOK, users)
+	res := make([]UserResponseDTO, 0, len(users))
+	for _, user := range users {
+		res = append(res, toUserResponseDTO(user))
+	}
+	httpx.JSON(w, http.StatusOK, res)
 }
 
 func parseQueryInt32(r *http.Request, key string, fallback int32) int32 {

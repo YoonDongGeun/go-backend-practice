@@ -14,11 +14,11 @@ import (
 
 func TestHandlerCreateUser(t *testing.T) {
 	repo := &fakeRepository{
-		createFunc: func(ctx context.Context, input CreateUserInput) (User, error) {
-			return User{
+		createFunc: func(ctx context.Context, command CreateUserCommand) (UserEntity, error) {
+			return UserEntity{
 				ID:        1,
-				Email:     input.Email,
-				Name:      input.Name,
+				Email:     command.Email,
+				Name:      command.Name,
 				CreatedAt: time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC),
 			}, nil
 		},
@@ -36,7 +36,7 @@ func TestHandlerCreateUser(t *testing.T) {
 		t.Fatalf("expected status %d, got %d: %s", http.StatusCreated, rec.Code, rec.Body.String())
 	}
 
-	var got User
+	var got UserResponseDTO
 	if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -47,8 +47,8 @@ func TestHandlerCreateUser(t *testing.T) {
 
 func TestHandlerGetUserNotFound(t *testing.T) {
 	repo := &fakeRepository{
-		getByIDFunc: func(ctx context.Context, id int64) (User, error) {
-			return User{}, ErrNotFound
+		getByIDFunc: func(ctx context.Context, id int64) (UserEntity, error) {
+			return UserEntity{}, ErrNotFound
 		},
 	}
 	router := newTestRouter(repo)
