@@ -39,7 +39,8 @@ func main() {
 	}
 
 	queries := store.New(pgPool)
-	userService := user.NewService(queries)
+	userRepository := user.NewPostgresRepository(queries)
+	userService := user.NewService(userRepository)
 	userHandler := user.NewHandler(userService)
 
 	httpServer := &http.Server{

@@ -7,9 +7,7 @@ import (
 	"strconv"
 
 	"github.com/YoonDongGeun/go-backend-practice/internal/httpx"
-	"github.com/YoonDongGeun/go-backend-practice/internal/store"
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
 )
 
 type Handler struct {
@@ -44,7 +42,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Create(r.Context(), store.CreateUserParams{
+	user, err := h.service.Create(r.Context(), CreateUserInput{
 		Email: req.Email,
 		Name:  req.Name,
 	})
@@ -64,7 +62,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.service.Get(r.Context(), id)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, ErrNotFound) {
 		httpx.Error(w, http.StatusNotFound, "user not found")
 		return
 	}

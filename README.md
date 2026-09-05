@@ -10,6 +10,28 @@ Small Go backend practice project using chi, pgx, sqlc, PostgreSQL, and Redis.
 - `goose` style migration files
 - `go-redis` for Redis
 
+## Architecture
+
+The example keeps a Java-style 3-layer shape, but uses Go package boundaries:
+
+```text
+cmd/api/main.go
+  -> internal/server router
+  -> internal/user handler        # controller layer
+  -> internal/user service        # business layer
+  -> internal/user repository     # persistence interface + postgres implementation
+  -> internal/store               # sqlc generated query code
+  -> PostgreSQL
+```
+
+For new features, copy the `internal/user` shape:
+
+- `model.go` defines request/domain data used by the feature.
+- `handler.go` owns HTTP parsing, status codes, and JSON responses.
+- `service.go` owns business rules and depends on a repository interface.
+- `repository.go` adapts the database implementation to the service.
+- `sql/queries/*.sql` contains SQL that `sqlc` compiles into `internal/store`.
+
 ## Run locally
 
 ```bash
@@ -38,3 +60,14 @@ curl http://localhost:8080/api/v1/users/1
 go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 sqlc generate
 ```
+
+## Tests
+
+```bash
+go test ./...
+```
+
+The sample tests show two common backend test styles:
+
+- `internal/user/service_test.go` tests service behavior with a fake repository.
+- `internal/user/handler_test.go` tests controller/handler behavior with `httptest`.

@@ -1,30 +1,23 @@
 package user
 
-import (
-	"context"
-
-	"github.com/YoonDongGeun/go-backend-practice/internal/store"
-)
+import "context"
 
 type Service struct {
-	queries *store.Queries
+	repo Repository
 }
 
-func NewService(queries *store.Queries) *Service {
-	return &Service{queries: queries}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
-func (s *Service) Create(ctx context.Context, params store.CreateUserParams) (store.User, error) {
-	return s.queries.CreateUser(ctx, params)
+func (s *Service) Create(ctx context.Context, input CreateUserInput) (User, error) {
+	return s.repo.Create(ctx, input)
 }
 
-func (s *Service) Get(ctx context.Context, id int64) (store.User, error) {
-	return s.queries.GetUser(ctx, id)
+func (s *Service) Get(ctx context.Context, id int64) (User, error) {
+	return s.repo.GetByID(ctx, id)
 }
 
-func (s *Service) List(ctx context.Context, limit, offset int32) ([]store.User, error) {
-	return s.queries.ListUsers(ctx, store.ListUsersParams{
-		Limit:  limit,
-		Offset: offset,
-	})
+func (s *Service) List(ctx context.Context, limit, offset int32) ([]User, error) {
+	return s.repo.List(ctx, limit, offset)
 }
